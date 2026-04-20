@@ -96,7 +96,7 @@ def train(config):
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
     for epoch in range(initial_epoch, config['num_epochs']):
-        latest_checkpoint = Path(str(latest_checkpoint[:-3]) + epoch +'.pt')
+        latest_checkpoint = Path(str(latest_checkpoint)[:-3] + epoch +'.pt')
         torch.cuda.empty_cache()
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
