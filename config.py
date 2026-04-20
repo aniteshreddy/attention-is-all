@@ -12,5 +12,7 @@ def get_config():
         "preload": "latest",
         "tokenizer_file": "tokenizer_{0}.json",
         "experiment_name": "runs/tmodel",
-        "dataset": "MRR24/English_to_Telugu_Bilingual_Sentence_Pairs"
+        "dataset": "MRR24/English_to_Telugu_Bilingual_Sentence_Pairs",
+        "checkpoint_dir": "/content/drive/MyDrive/translator_checkpoints",
+
     }

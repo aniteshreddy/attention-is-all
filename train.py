@@ -4,8 +4,9 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from dataset import causal_mask
-
 from config import get_config
+from pathlib import Path
+import os
 
 
 def get_model(config, src_vocab_size, trgt_vocab_size):
@@ -23,14 +24,11 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, devic
             encoder_input = batch['encoder_input'].to(device)
             encoder_mask = batch['encoder_mask'].to(device)
 
-            # Greedy decode
             sos_id = tokenizer_trgt.token_to_id('[SOS]')
             eos_id = tokenizer_trgt.token_to_id('[EOS]')
 
-            # Encode the source sentence
             encoder_output = model.encode(encoder_input, encoder_mask)
 
-            # Start with SOS token
             decoder_input = torch.empty(1, 1).fill_(sos_id).type_as(encoder_input).to(device)
 
             while True:
@@ -38,10 +36,8 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, devic
                     break
 
                 decoder_mask = causal_mask(decoder_input.size(1)).type_as(encoder_mask).to(device)
-
                 decoder_output = model.decode(encoder_output, encoder_mask, decoder_input, decoder_mask)
 
-                # Get the next token probabilities
                 prob = model.project(decoder_output[:, -1])
                 _, next_word = torch.max(prob, dim=1)
 
@@ -53,7 +49,6 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, devic
                 if next_word == eos_id:
                     break
 
-            # Decode the tokens back to text
             model_out = decoder_input.squeeze(0)
 
             source_text = batch['src_text'][0]
@@ -73,19 +68,32 @@ def train(config):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using Device: ", device)
+    
+    checkpoint_dir =Path(config['checkpoint_dir'])
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     train_dataloader, val_dataloader, tokenizer_src, tokenizer_trgt = get_ds(config=config)
     model = get_model(
                 config=config, 
                 src_vocab_size=tokenizer_src.get_vocab_size(), 
-                trgt_vocab_size= tokenizer_trgt.get_vocab_size()
+                trgt_vocab_size=tokenizer_trgt.get_vocab_size()
             )
 
-    optimizer = torch.optim.Adam(model.parameters(),lr=config['lr'], eps=1e-9 )
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], eps=1e-9)
 
     model = model.to(device=device)
 
     initial_epoch = 0
+
+    # Load checkpoint if exists
+    latest_checkpoint = checkpoint_dir / 'latest_checkpoint.pt'
+    if latest_checkpoint.exists():
+        print("Loading checkpoint...")
+        checkpoint = torch.load(str(latest_checkpoint), map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        initial_epoch = checkpoint['epoch'] + 1
+        print(f"Resuming from epoch {initial_epoch}")
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
@@ -109,14 +117,18 @@ def train(config):
             loss = loss_fn(proj_output.view(-1, tokenizer_trgt.get_vocab_size()), label.view(-1))
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
-           
-            # Backpropagate the loss
             loss.backward()
-
-            # Update the weights
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
+
+        # Validate
         validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, device)
 
-
-        
+        # Save checkpoint after each epoch
+        print(f"Saving checkpoint for epoch {epoch}...")
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+        }, str(latest_checkpoint))
+        print(f"Checkpoint saved to {latest_checkpoint}")
