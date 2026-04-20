@@ -1,7 +1,5 @@
 import torch
-import torch.nn as nn
 from torch.utils.data import Dataset
-from model import build_transformer
 
 
 class LanguageDataset(Dataset):

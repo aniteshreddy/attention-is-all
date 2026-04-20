@@ -4,9 +4,7 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 from dataset import causal_mask
-from config import get_config
 from pathlib import Path
-import os
 
 
 def get_model(config, src_vocab_size, trgt_vocab_size):
@@ -98,6 +96,7 @@ def train(config):
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
     for epoch in range(initial_epoch, config['num_epochs']):
+        latest_checkpoint = latest_checkpoint[:-3] + epoch +'.pt' 
         torch.cuda.empty_cache()
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
