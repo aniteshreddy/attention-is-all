@@ -36,14 +36,14 @@ class LanguageDataset(Dataset):
                 self.sos_token, 
                 torch.tensor(encoder_input_tokens, dtype=torch.int64),  
                 self.eos_token,  
-                torch.tensor([[self.pad_token] * encode_padding_length], dtype=torch.int64)
+                torch.tensor([self.pad_token] * encode_padding_length, dtype=torch.int64)
             ], dim=0)
 
         decoder_input = torch.concat(
             [
                 self.sos_token, 
                 torch.tensor(decoder_input_tokens, dtype=torch.int64),    
-                torch.tensor([[self.pad_token] * decode_padding_length], 
+                torch.tensor([self.pad_token] * decode_padding_length, 
                 dtype=torch.int64)
             ], dim=0)
 
@@ -51,7 +51,7 @@ class LanguageDataset(Dataset):
             [
                 torch.tensor(decoder_input_tokens, dtype=torch.int64), 
                 self.eos_token,     
-                torch.tensor([[self.pad_token] * decode_padding_length], 
+                torch.tensor([self.pad_token] * decode_padding_length, 
                 dtype=torch.int64)
             ])
         
