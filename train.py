@@ -52,7 +52,7 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, devic
             model_out = decoder_input.squeeze(0)
 
             source_text = batch['src_text'][0]
-            target_text = batch['trgt_txt'][0]
+            target_text = batch['trgt_text'][0]
             model_out_text = tokenizer_trgt.decode(model_out.detach().cpu().numpy())
 
             print('-' * console_width)
@@ -120,11 +120,7 @@ def train(config):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
-
-        # Validate
-        validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, device)
-
-        # Save checkpoint after each epoch
+        
         print(f"Saving checkpoint for epoch {epoch}...")
         torch.save({
             'epoch': epoch,
@@ -132,3 +128,6 @@ def train(config):
             'optimizer_state_dict': optimizer.state_dict(),
         }, str(latest_checkpoint))
         print(f"Checkpoint saved to {latest_checkpoint}")
+
+        validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, device)
+        
