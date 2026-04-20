@@ -10,7 +10,7 @@ class LanguageDataset(Dataset):
         self.tokenizer_src = tokenizer_src
         self.tokenizer_trgt = tokenizer_trgt
         self.src_key = src_key
-        self.trgt_lang = trgt_key
+        self.trgt_key = trgt_key
         self.seq_len = seq_len
 
         self.sos_token = torch.tensor([self.tokenizer_src.token_to_id("[SOS]")], dtype=torch.int64)
