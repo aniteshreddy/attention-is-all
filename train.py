@@ -52,7 +52,7 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, config, devic
             model_out = decoder_input.squeeze(0)
 
             source_text = batch['src_text'][0]
-            target_text = batch['tgt_text'][0]
+            target_text = batch['trgt_txt'][0]
             model_out_text = tokenizer_trgt.decode(model_out.detach().cpu().numpy())
 
             print('-' * console_width)
