@@ -2,7 +2,7 @@ from model import build_transformer
 from tokenizer import get_ds
 import torch
 import torch.nn as nn
-import tqdm
+from tqdm import tqdm
 from dataset import causal_mask
 
 from config import get_config
@@ -78,7 +78,7 @@ def train(config):
     model = get_model(
                 config=config, 
                 src_vocab_size=tokenizer_src.get_vocab_size(), 
-                trgt_vocab_size= tokenizer_trgt.get_vocab_size
+                trgt_vocab_size= tokenizer_trgt.get_vocab_size()
             )
 
     optimizer = torch.optim.Adam(model.parameters(),lr=config['lr'], eps=1e-9 )

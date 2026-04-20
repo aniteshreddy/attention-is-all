@@ -25,8 +25,8 @@ class LanguageDataset(Dataset):
 
         src_text, trgt_text = input_text[self.src_key], input_text[self.trgt_key]
         
-        encoder_input_tokens = self.tokenizer_src.encode(src_text).tokens.ids 
-        decoder_input_tokens = self.tokenizer_trgt.encode(trgt_text).tokens.ids
+        encoder_input_tokens = self.tokenizer_src.encode(src_text).ids 
+        decoder_input_tokens = self.tokenizer_trgt.encode(trgt_text).ids
 
         encode_padding_length = self.seq_len - len(encoder_input_tokens) - 2
         decode_padding_length = self.seq_len - len(decoder_input_tokens) - 1
