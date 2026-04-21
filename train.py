@@ -1,5 +1,6 @@
 from model import build_transformer
 from tokenizer import get_ds
+from config import get_config
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -111,7 +112,7 @@ def validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, loss_fn, conf
     return avg_val_loss
 
 
-def get_lr_scheduler(optimizer, config, steps_per_epoch):
+def get_lr_scheduler(optimizer, config):
     warmup_steps = config.get('warmup_steps', 4000)
 
     def lr_lambda(step):
@@ -139,8 +140,8 @@ def train(config):
                 trgt_vocab_size=tokenizer_trgt.vocab_size
             )
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], eps=1e-9)
-    scheduler = get_lr_scheduler(optimizer, config, steps_per_epoch=len(train_dataloader))
+    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], betas=(0.9, 0.98), eps=1e-9)
+    scheduler = get_lr_scheduler(optimizer, config)
 
     model = model.to(device=device)
 
@@ -204,3 +205,7 @@ def train(config):
 
         # Validate
         validate(model, val_dataloader, tokenizer_src, tokenizer_trgt, loss_fn, config, device)
+
+
+if __name__ == "__main__":
+    train(get_config())
