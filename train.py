@@ -115,9 +115,11 @@ def get_lr_scheduler(optimizer, config, steps_per_epoch):
     warmup_steps = config.get('warmup_steps', 4000)
 
     def lr_lambda(step):
-        step = max(step, 1) 
-        d_model = config['d_model']
-        return (d_model ** -0.5) * min(step ** -0.5, step * warmup_steps ** -1.5)
+        step = max(step, 1)
+        # Linear warmup from 0 → 1 over warmup_steps, then inverse sqrt decay
+        if step < warmup_steps:
+            return step / warmup_steps
+        return (warmup_steps / step) ** 0.5
 
     return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
