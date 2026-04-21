@@ -1,6 +1,6 @@
 def get_config():
     return {
-        "batch_size": 64,
+        "batch_size": 256,
         "num_epochs": 20,
         "lr": 10**-4,
         "seq_len": 150,
@@ -14,5 +14,6 @@ def get_config():
         "experiment_name": "runs/tmodel",
         "dataset": "MRR24/English_to_Telugu_Bilingual_Sentence_Pairs",
         "checkpoint_dir": "/content/drive/MyDrive/translator_checkpoints",
-
+        "num_val_examples": 5,
+        "warmup_steps": 4000,
     }
