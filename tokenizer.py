@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import random_split, DataLoader
 
 from transformers import AutoTokenizer
@@ -17,7 +18,13 @@ def get_ds(config):
     val_ds_size = total - train_ds_size
     print(f"Total: {total}, Train: {train_ds_size}, Val: {val_ds_size}")
 
-    train_ds_raw, val_ds_raw = random_split(dataset=dataset['train'], lengths=[train_ds_size, val_ds_size])
+    seed = config.get('seed', 42)
+    split_generator = torch.Generator().manual_seed(seed)
+    train_ds_raw, val_ds_raw = random_split(
+        dataset=dataset['train'],
+        lengths=[train_ds_size, val_ds_size],
+        generator=split_generator,
+    )
 
     train_ds = LanguageDataset(
         ds=train_ds_raw,
@@ -53,7 +60,8 @@ def get_ds(config):
         print(f"WARNING: seq_len={config['seq_len']} may be too short. "
               f"Consider increasing to at least {max(max_len_src, max_len_tgt) + 2}.")
 
-    train_dataloader = DataLoader(train_ds, batch_size=config['batch_size'], shuffle=True)
-    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
+    loader_generator = torch.Generator().manual_seed(seed)
+    train_dataloader = DataLoader(train_ds, batch_size=config['batch_size'], shuffle=True, generator=loader_generator)
+    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True, generator=loader_generator)
 
     return train_dataloader, val_dataloader, tokenizer, tokenizer
